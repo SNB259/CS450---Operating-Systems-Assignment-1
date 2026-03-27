@@ -10,7 +10,9 @@ static void write_end_magic(void *user_ptr, size_t bloc_size)
     unsigned char *magic_num_bytes = (unsigned char *)&magic_num;
     unsigned char *end_ptr = (unsigned char *)user_ptr + bloc_size;
     for (size_t i = 0; i < sizeof(long); i++)
+    {
         end_ptr[i] = magic_num_bytes[i];
+    }
 }
 
 static int check_end_magic(void *user_ptr, size_t bloc_size)
@@ -19,13 +21,16 @@ static int check_end_magic(void *user_ptr, size_t bloc_size)
     unsigned char *magic_num_bytes = (unsigned char *)&magic_num;
     unsigned char *end_ptr = (unsigned char *)user_ptr + bloc_size;
     for (size_t i = 0; i < sizeof(long); i++)
+    {
         if (end_ptr[i] != magic_num_bytes[i])
             return 0;
+    }
     return 1;
 }
 
 void *malloc_fame(size_t bloc_size)
 {
+
     if (bloc_size == 0)
         return NULL;
 
@@ -34,12 +39,14 @@ void *malloc_fame(size_t bloc_size)
 
     while (cur != NULL)
     {
+
         if (cur->bloc_size >= bloc_size)
         {
 
             size_t leftover = cur->bloc_size - bloc_size;
             if (leftover > sizeof(HEADER) + sizeof(long))
             {
+
                 HEADER *new_free = (HEADER *)((char *)(cur + 1) + bloc_size + sizeof(long));
                 new_free->bloc_size = leftover - sizeof(HEADER) - sizeof(long);
                 new_free->magic_number = MAGIC;
@@ -50,16 +57,24 @@ void *malloc_fame(size_t bloc_size)
                 cur->bloc_size = bloc_size;
 
                 if (prev)
+                {
                     prev->ptr_next = new_free;
+                }
                 else
+                {
                     free_list = new_free;
+                }
             }
             else
             {
                 if (prev)
+                {
                     prev->ptr_next = cur->ptr_next;
+                }
                 else
+                {
                     free_list = cur->ptr_next;
+                }
             }
 
             cur->ptr_next = NULL;
@@ -76,7 +91,9 @@ void *malloc_fame(size_t bloc_size)
     size_t total = sizeof(HEADER) + bloc_size + sizeof(long);
     void *raw = sbrk((intptr_t)total);
     if (raw == (void *)-1)
+    {
         return NULL;
+    }
 
     HEADER *bloc = (HEADER *)raw;
     bloc->ptr_next = NULL;
@@ -90,8 +107,11 @@ void *malloc_fame(size_t bloc_size)
 
 void free_fame(void *ptr)
 {
+
     if (ptr == NULL)
+    {
         return;
+    }
 
     HEADER *bloc = (HEADER *)ptr - 1;
 
@@ -120,10 +140,13 @@ void free_fame(void *ptr)
 
     bloc->ptr_next = cur;
     if (prev)
+    {
         prev->ptr_next = bloc;
+    }
     else
+    {
         free_list = bloc;
-
+    }
     char *bloc_end = (char *)(bloc + 1) + bloc->bloc_size + sizeof(long);
 
     if (bloc->ptr_next != NULL && (char *)bloc->ptr_next == bloc_end)
